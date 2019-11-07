@@ -28,31 +28,6 @@ RUN rm /etc/localtime &&\
     ln -s /usr/share/zoneinfo/America/Sao_Paulo /etc/localtime &&\
     "date"
 
-# Oracle instantclient
-# copy oracle files
-ADD oracle/instantclient-basic-linux.x64-12.1.0.2.0.zip /tmp/
-ADD oracle/instantclient-sdk-linux.x64-12.1.0.2.0.zip /tmp/
-ADD oracle/instantclient-sqlplus-linux.x64-12.1.0.2.0.zip /tmp/
-ENV LD_LIBRARY_PATH /usr/local/instantclient
-ENV TNS_ADMIN       /usr/local/instantclient
-ENV ORACLE_BASE     /usr/local/instantclient
-ENV ORACLE_HOME     /usr/local/instantclient
-
-# unzip oracle instances
-RUN unzip /tmp/instantclient-basic-linux.x64-12.1.0.2.0.zip -d /usr/local/ \
-    && unzip /tmp/instantclient-sdk-linux.x64-12.1.0.2.0.zip -d /usr/local/ \
-    && unzip /tmp/instantclient-sqlplus-linux.x64-12.1.0.2.0.zip -d /usr/local/
-
-# install pecl
-RUN curl -O http://pear.php.net/go-pear.phar \
-    ; /usr/local/bin/php -d detect_unicode=0 go-pear.phar
-
-# install oci8
-RUN ln -s /usr/local/instantclient_12_1 /usr/local/instantclient \
-    && ln -s /usr/local/instantclient/libclntsh.so.12.1 /usr/local/instantclient/libclntsh.so \
-    && ln -s /usr/local/instantclient/sqlplus /usr/bin/sqlplus \
-    && echo 'instantclient,/usr/local/instantclient' | pecl install oci8 \
-    && echo "extension=oci8.so" > /usr/local/etc/php/oci8.ini
 
 # xDEBUG testing
 RUN pecl install xdebug \
@@ -72,18 +47,6 @@ RUN apt-get update && apt-get install -y \
     docker-php-ext-configure pgsql -with-pgsql=/usr/local/pgsql && \
     docker-php-ext-install pdo pdo_pgsql pgsql && \
     docker-php-ext-install gd
-
-# Microsoft SQL Server Prerequisites
-RUN apt-get -y install unixodbc-dev
-RUN pecl install sqlsrv pdo_sqlsrv
-RUN docker-php-ext-install bcmath
-
-
-#imagick
-RUN export CFLAGS="$PHP_CFLAGS" CPPFLAGS="$PHP_CPPFLAGS" LDFLAGS="$PHP_LDFLAGS"
-RUN apt-get install -y --no-install-recommends libmagickwand-dev \
-    && pecl install imagick-3.4.3 \
-    && docker-php-ext-enable imagick
 
 
 #Composer
